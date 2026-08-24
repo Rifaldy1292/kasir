@@ -9,6 +9,7 @@ import (
 // Workspace represents a tenant business
 type Workspace struct {
 	ID            uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+	OwnerID       uint           `gorm:"index" json:"owner_id"` // ID of the Owner who created this workspace
 	Name          string         `gorm:"type:varchar(255);not null" json:"name"`
 	BusinessType  string         `gorm:"type:varchar(100);default:'Retail'" json:"business_type"`
 	Phone         string         `gorm:"type:varchar(50)" json:"phone"`
@@ -31,9 +32,9 @@ type Workspace struct {
 // User represents a staff member (Owner, Admin, Cashier)
 type User struct {
 	ID           uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	WorkspaceID  uint           `gorm:"index;not null" json:"workspace_id"`
+	WorkspaceID  *uint          `gorm:"index" json:"workspace_id"` // NULL if Owner hasn't created a workspace yet
 	Name         string         `gorm:"type:varchar(255);not null" json:"name"`
-	Email        string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
+	Email        string         `gorm:"type:varchar(255);not null;index" json:"email"`
 	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"`
 	Role         string         `gorm:"type:varchar(50);not null;default:'CASHIER'" json:"role"` // OWNER, ADMIN, CASHIER
 	Status       string         `gorm:"type:varchar(20);default:'ACTIVE'" json:"status"`         // ACTIVE, INACTIVE
@@ -262,4 +263,24 @@ type AuditLog struct {
 	CreatedAt   time.Time `json:"created_at"`
 
 	User *User `gorm:"foreignKey:UserID" json:"user,omitempty"`
+}
+
+// SystemLog mencatat semua event login, CRUD, dan error untuk keperluan audit dan monitoring.
+// Data ini dapat diakses melalui API oleh OWNER dan ADMIN.
+type SystemLog struct {
+	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	WorkspaceID uint      `gorm:"index" json:"workspace_id"`                   // 0 jika request belum terautentikasi
+	UserID      uint      `gorm:"index" json:"user_id"`                        // 0 jika request belum terautentikasi
+	UserEmail   string    `gorm:"type:varchar(255)" json:"user_email"`
+	Type        string    `gorm:"type:varchar(20);not null;index" json:"type"` // LOGIN, CRUD, ERROR
+	Method      string    `gorm:"type:varchar(10)" json:"method"`              // GET, POST, PUT, DELETE, dsb
+	Path        string    `gorm:"type:varchar(500)" json:"path"`
+	Action      string    `gorm:"type:varchar(200)" json:"action"`             // misal: "Create Products"
+	Entity      string    `gorm:"type:varchar(100)" json:"entity"`             // misal: "Products"
+	EntityID    string    `gorm:"type:varchar(100)" json:"entity_id"`
+	StatusCode  int       `json:"status_code"`
+	Message     string    `gorm:"type:text" json:"message"`
+	Detail      string    `gorm:"type:text" json:"detail"` // detail error atau keterangan tambahan
+	IPAddress   string    `gorm:"type:varchar(50)" json:"ip_address"`
+	CreatedAt   time.Time `json:"created_at"`
 }

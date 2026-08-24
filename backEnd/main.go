@@ -8,11 +8,14 @@ import (
 	"gin-quickstart/config"
 	"gin-quickstart/database"
 	"gin-quickstart/database/seeders"
+	"gin-quickstart/middleware"
+	"gin-quickstart/modules/ai"
 	"gin-quickstart/modules/auth"
 	"gin-quickstart/modules/cash"
 	"gin-quickstart/modules/category"
 	"gin-quickstart/modules/customer"
 	"gin-quickstart/modules/inventory"
+	"gin-quickstart/modules/logs"
 	"gin-quickstart/modules/pos"
 	"gin-quickstart/modules/product"
 	"gin-quickstart/modules/purchase"
@@ -20,6 +23,7 @@ import (
 	"gin-quickstart/modules/settings"
 	"gin-quickstart/modules/supplier"
 	"gin-quickstart/modules/upload"
+	"gin-quickstart/pkg/logger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -39,12 +43,15 @@ func main() {
 		log.Printf("Peringatan seeder: %v", err)
 	}
 
-	// 4. Initialize Gin Engine
+	// 4. Mulai log cleanup scheduler (hapus file log > 7 hari setiap 24 jam)
+	logger.StartCleanupScheduler()
+
+	// 5. Initialize Gin Engine
 	router := gin.Default()
 
-	// 5. Setup CORS Middleware
+	// 6. Setup CORS Middleware
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "*"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:3030", "http://127.0.0.1:3000", "http://127.0.0.1:3030", "*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -52,11 +59,11 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// 6. Serve Uploaded Static Files
+	// 7. Serve Uploaded Static Files
 	_ = os.MkdirAll("./uploads", 0755)
 	router.Static("/uploads", "./uploads")
 
-	// 7. Health check route
+	// 8. Health check route
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -65,8 +72,14 @@ func main() {
 		})
 	})
 
-	// 8. Register Modular Feature Routes
+	// 9. Register Modular Feature Routes
 	apiGroup := router.Group("/api/v1")
+
+	// Pasang logger middleware ke seluruh API group
+	// Error logger dipasang lebih dulu (berjalan paling akhir = post-processing terluar)
+	apiGroup.Use(middleware.ErrorLoggerMiddleware(db))
+	apiGroup.Use(middleware.CRUDLoggerMiddleware(db))
+
 	{
 		auth.RegisterRoutes(apiGroup, db)
 		category.RegisterRoutes(apiGroup, db)
@@ -80,7 +93,10 @@ func main() {
 		report.RegisterRoutes(apiGroup, db)
 		settings.RegisterRoutes(apiGroup, db)
 		upload.RegisterRoutes(apiGroup, db)
+		logs.RegisterRoutes(apiGroup, db)
+		ai.RegisterRoutes(apiGroup, db)
 	}
+
 
 	port := os.Getenv("PORT")
 	if port == "" {

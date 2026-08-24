@@ -16,7 +16,18 @@ import {
   AlertTriangle,
   Receipt,
   ArrowUpRight,
+  Sparkles,
+  Bot,
+  Lightbulb,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
+  RefreshCw,
+  ArrowRight,
 } from "lucide-react"
+import { AIChatWidget } from "@/components/global/ai-chat-widget"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import {
   BarChart,
   Bar,
@@ -41,11 +52,27 @@ export default function DashboardPage() {
     },
   })
 
+  const {
+    data: insightsData,
+    isLoading: isInsightsLoading,
+    refetch: fetchInsights,
+    isFetching: isInsightsFetching,
+    error: insightsError,
+  } = useQuery({
+    queryKey: ["ai-insights"],
+    queryFn: async () => {
+      const res = await apiClient.get("/ai/insights")
+      return res.data.data
+    },
+    enabled: false, // triggered on user request
+  })
+
   const summary = dashboard || {}
   const trends = summary.daily_sales_trends || []
   const paymentSplits = summary.payment_method_breakdown || []
   const topProducts = summary.top_selling_products || []
   const recentTransactions = summary.recent_transactions || []
+  const aiInsights = insightsData || []
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -166,6 +193,157 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* AI Strategic Insights Section */}
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-card to-background shadow-sm overflow-hidden">
+            <CardHeader className="p-5 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-xs shrink-0">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-sm font-bold text-foreground">
+                      AI Business Intelligence & Insights
+                    </CardTitle>
+                    <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20 font-semibold px-2 py-0">
+                      Gemini 2.0
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs mt-0.5">
+                    Analisis pintar otomatis dari pola penjualan, margin, dan pergerakan stok toko Anda
+                  </CardDescription>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link href="/inventory/ai-prediction">
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border hover:bg-muted">
+                    <Package className="w-3.5 h-3.5 text-primary" />
+                    <span>Prediksi Stok AI</span>
+                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                </Link>
+
+                <Button
+                  onClick={() => fetchInsights()}
+                  disabled={isInsightsFetching}
+                  size="sm"
+                  className="h-8 text-xs gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isInsightsFetching ? "animate-spin" : ""}`} />
+                  <span>{aiInsights.length > 0 ? "Perbarui Analisis" : "Analisis Sekarang"}</span>
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-5">
+              {isInsightsFetching ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="p-4 rounded-xl border border-border bg-card/60 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-28 rounded-md" />
+                        <Skeleton className="h-4 w-16 rounded-full" />
+                      </div>
+                      <Skeleton className="h-10 w-full rounded-md" />
+                      <Skeleton className="h-12 w-full rounded-md" />
+                    </div>
+                  ))}
+                </div>
+              ) : aiInsights.length === 0 ? (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5">
+                  <div className="flex items-center gap-3 text-center sm:text-left">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mx-auto sm:mx-0">
+                      <Lightbulb className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-foreground">
+                        Belum ada analisis yang dijalankan untuk sesi ini
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Klik tombol <strong>&quot;Analisis Sekarang&quot;</strong> di atas untuk meminta AI mengevaluasi tren omzet, produk unggulan, dan peringatan stok secara instan.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => fetchInsights()}
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 text-xs border-primary/30 text-primary hover:bg-primary/10"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    Minta Wawasan AI
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {aiInsights.map((ins: any, idx: number) => {
+                    const isPositive = ins.severity === "positive"
+                    const isWarning = ins.severity === "warning" || ins.severity === "danger"
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-4 rounded-xl border flex flex-col justify-between transition-all duration-200 hover:shadow-xs ${
+                          isPositive
+                            ? "bg-emerald-500/5 border-emerald-500/20"
+                            : isWarning
+                            ? "bg-amber-500/5 border-amber-500/20"
+                            : "bg-card border-border"
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                              {isPositive ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              ) : isWarning ? (
+                                <AlertTriangle className="w-3 h-3 text-amber-600" />
+                              ) : (
+                                <Lightbulb className="w-3 h-3 text-primary" />
+                              )}
+                              {ins.type || "Insight"}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={`text-[9px] px-1.5 py-0 h-4 capitalize ${
+                                isPositive
+                                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                                  : isWarning
+                                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+                                  : "bg-primary/10 text-primary border-primary/30"
+                              }`}
+                            >
+                              {ins.severity || "Info"}
+                            </Badge>
+                          </div>
+
+                          <h4 className="text-xs font-bold text-foreground leading-snug">
+                            {ins.title}
+                          </h4>
+
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            {ins.description}
+                          </p>
+                        </div>
+
+                        {ins.recommendation && (
+                          <div className="mt-3 pt-2.5 border-t border-border/40 flex items-start gap-1.5">
+                            <span className="text-[10px] font-semibold text-primary shrink-0 mt-0.5">Saran:</span>
+                            <p className="text-[11px] text-foreground font-medium leading-tight">
+                              {ins.recommendation}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -391,6 +569,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating AI Business Assistant Chatbot */}
+      <AIChatWidget />
     </div>
   )
 }

@@ -23,7 +23,12 @@ func InitDB() *gorm.DB {
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dbURL), &gorm.Config{})
+	DB, err = gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dbURL,
+		PreferSimpleProtocol: true, // Mencegah error "cached plan must not change result type" di Neon/PgBouncer
+	}), &gorm.Config{
+		PrepareStmt: false,
+	})
 	if err != nil {
 		log.Fatal("Gagal koneksi ke database PostgreSQL: ", err)
 	}

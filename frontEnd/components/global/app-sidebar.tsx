@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query"
 import apiClient from "@/lib/api-client"
 import { useSidebarStore } from "@/lib/sidebar-store"
 import { CashDrawerDialog } from "./cash-drawer-dialog"
+import { WorkspaceSwitcherDialog } from "./workspace-switcher-dialog"
 import {
   LayoutDashboard,
   Store,
@@ -23,7 +24,9 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  ChevronsUpDown,
   Truck,
+  Sparkles,
   X,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +37,7 @@ export function AppSidebar() {
   const { user, workspace, logout } = useAuth()
   const { isCollapsed, isMobileOpen, toggleCollapse, setMobileOpen } = useSidebarStore()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [wsSwitcherOpen, setWsSwitcherOpen] = useState(false)
 
   // Query shift session for quick drawer indicator
   const { data: sessionData } = useQuery({
@@ -51,6 +55,7 @@ export function AppSidebar() {
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Produk & Menu", href: "/products", icon: Package },
     { label: "Stok & Inventori", href: "/inventory", icon: Boxes },
+    { label: "Prediksi Stok AI", href: "/inventory/ai-prediction", icon: Sparkles, badge: "AI" },
     { label: "Riwayat Transaksi", href: "/transactions", icon: ReceiptText },
     { label: "Pembelian / PO", href: "/purchases", icon: ShoppingCart },
     { label: "Pelanggan", href: "/customers", icon: Users },
@@ -68,17 +73,26 @@ export function AppSidebar() {
 
   const renderSidebarBody = (collapsed: boolean, isMobile: boolean) => (
     <div className="flex flex-col h-full bg-card select-none">
-      {/* Brand / Workspace Header */}
-      <div className="p-3.5 border-b border-border flex items-center justify-between gap-2 h-16 shrink-0">
-        <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black shadow-xs shrink-0">
+      {/* Brand / Workspace Header — Click to Switch Workspace */}
+      <div className="p-3 border-b border-border flex items-center justify-between gap-2 h-16 shrink-0">
+        <button
+          onClick={() => setWsSwitcherOpen(true)}
+          className={`flex items-center gap-2.5 overflow-hidden text-left rounded-xl p-1 -m-1 transition-colors hover:bg-muted/60 group cursor-pointer ${
+            collapsed ? "justify-center w-full" : "flex-1"
+          }`}
+          title="Klik untuk ganti toko / tambah cabang baru"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black shadow-xs shrink-0 group-hover:scale-105 transition-transform">
             tK
           </div>
           {!collapsed && (
-            <div className="overflow-hidden">
-              <h1 className="text-xs font-bold truncate leading-tight text-foreground">
-                {workspace?.name || "theKasir App"}
-              </h1>
+            <div className="overflow-hidden flex-1">
+              <div className="flex items-center justify-between gap-1">
+                <h1 className="text-xs font-bold truncate leading-tight text-foreground group-hover:text-primary transition-colors">
+                  {workspace?.name || "theKasir App"}
+                </h1>
+                <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary shrink-0 opacity-70 group-hover:opacity-100" />
+              </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <Building2 className="w-2.5 h-2.5 text-muted-foreground" />
                 <span className="text-[10px] text-muted-foreground truncate">
@@ -87,7 +101,7 @@ export function AppSidebar() {
               </div>
             </div>
           )}
-        </div>
+        </button>
 
         {/* Mobile Close Button */}
         {isMobile && (
@@ -176,8 +190,24 @@ export function AppSidebar() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               } ${collapsed ? "justify-center px-2" : ""}`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
-              {!collapsed && <span className="truncate font-medium text-xs">{item.label}</span>}
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary-foreground" : item.badge ? "text-primary" : "text-muted-foreground"}`} />
+              {!collapsed && (
+                <div className="flex items-center justify-between flex-1 overflow-hidden">
+                  <span className="truncate font-medium text-xs">{item.label}</span>
+                  {item.badge && (
+                    <Badge
+                      variant="secondary"
+                      className={`text-[9px] px-1 py-0 h-3.5 font-bold ${
+                        isActive
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : "bg-primary/10 text-primary"
+                      }`}
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                </div>
+              )}
             </Link>
           )
         })}
@@ -254,6 +284,9 @@ export function AppSidebar() {
 
       {/* Cash Drawer Dialog */}
       <CashDrawerDialog open={drawerOpen} onOpenChange={setDrawerOpen} />
+
+      {/* Workspace Switcher & New Branch Dialog */}
+      <WorkspaceSwitcherDialog open={wsSwitcherOpen} onOpenChange={setWsSwitcherOpen} />
     </>
   )
 }

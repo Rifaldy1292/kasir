@@ -1,19 +1,18 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, Building2, User } from "lucide-react"
+import { AlertCircle, User, ShieldCheck, ArrowRight } from "lucide-react"
 
 export default function RegisterPage() {
-  const { registerWorkspace } = useAuth()
+  const { registerOwner } = useAuth()
   const [formData, setFormData] = useState({
-    workspace_name: "",
-    business_type: "Retail",
-    owner_name: "",
+    name: "",
     email: "",
     password: "",
     phone: "",
@@ -27,9 +26,9 @@ export default function RegisterPage() {
     setErrorMsg("")
 
     try {
-      await registerWorkspace(formData)
+      await registerOwner(formData)
     } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Pendaftaran gagal, periksa data kembali")
+      setErrorMsg(err?.response?.data?.message || "Pendaftaran gagal, periksa kembali email & password Anda")
     } finally {
       setLoading(false)
     }
@@ -37,99 +36,76 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-lg space-y-6">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="inline-flex w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-black text-2xl items-center justify-center shadow-lg">
             tK
           </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Daftarkan Toko Baru</h1>
-          <p className="text-sm text-muted-foreground">
-            Mulai kelola kasir dan stok produk bisnis Anda dalam hitungan menit
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Daftar Akun Pemilik (Owner)</h1>
+          <p className="text-xs text-muted-foreground">
+            Mulai kelola bisnis, cabang toko, dan staf kasir Anda dalam satu platform cerdas
           </p>
         </div>
 
         <Card className="border-border shadow-md">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl">Informasi Bisnis & Akun Owner</CardTitle>
-            <CardDescription>
-              Buat workspace utama Anda dan akun pemilik bisnis.
+            <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4" /> Hak Akses Utama (Owner)
+            </div>
+            <CardTitle className="text-lg">Informasi Akun Pemilik</CardTitle>
+            <CardDescription className="text-xs">
+              Setelah mendaftar, Anda dapat membuat toko/workspace dan menambahkan staf admin &amp; kasir di dalam aplikasi.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMsg && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg flex items-center gap-2">
+                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-lg flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{errorMsg}</span>
                 </div>
               )}
 
-              <div className="space-y-3 pb-2 border-b border-border">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase text-primary tracking-wider">
-                  <Building2 className="w-4 h-4" /> Informasi Toko / Bisnis
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="workspace_name">Nama Toko / Bisnis</Label>
-                    <Input
-                      id="workspace_name"
-                      placeholder="Contoh: Toko Berkah"
-                      value={formData.workspace_name}
-                      onChange={(e) => setFormData({ ...formData, workspace_name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="business_type">Jenis Bisnis</Label>
-                    <Input
-                      id="business_type"
-                      placeholder="Retail / F&B / Jasa"
-                      value={formData.business_type}
-                      onChange={(e) => setFormData({ ...formData, business_type: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase text-primary tracking-wider">
-                  <User className="w-4 h-4" /> Akun Owner Utama
-                </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="owner_name">Nama Pemilik</Label>
+                  <Label htmlFor="name" className="text-xs">Nama Lengkap Pemilik</Label>
                   <Input
-                    id="owner_name"
-                    placeholder="Nama Lengkap Owner"
-                    value={formData.owner_name}
-                    onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+                    id="name"
+                    placeholder="Contoh: Budi Santoso"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
+                    className="h-10 text-xs"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email">Email Login</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="owner@toko.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="phone">Nomor WhatsApp</Label>
-                    <Input
-                      id="phone"
-                      placeholder="081234567890"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
-                </div>
+
                 <div className="space-y-1.5">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="email" className="text-xs">Email Login</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="owner@bisnis.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className="h-10 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-xs">Nomor WhatsApp / HP (Opsional)</Label>
+                  <Input
+                    id="phone"
+                    placeholder="081234567890"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="h-10 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-xs">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -138,21 +114,23 @@ export default function RegisterPage() {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
                     minLength={6}
+                    className="h-10 text-xs"
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full font-semibold mt-2" disabled={loading}>
-                {loading ? "Membuat Workspace..." : "Daftar & Masuk ke Kasir"}
+              <Button type="submit" className="w-full font-semibold h-10 text-xs gap-2 mt-2" disabled={loading}>
+                <span>{loading ? "Mendaftarkan..." : "Daftar Sebagai Owner"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </form>
           </CardContent>
 
           <CardFooter className="flex justify-center border-t border-border pt-4 text-xs text-muted-foreground">
             <span>Sudah memiliki akun? </span>
-            <a href="/login" className="font-semibold text-primary hover:underline ml-1">
+            <Link href="/login" className="font-semibold text-primary hover:underline ml-1">
               Masuk di sini
-            </a>
+            </Link>
           </CardFooter>
         </Card>
       </div>

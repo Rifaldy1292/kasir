@@ -27,12 +27,32 @@ export interface Workspace {
   receipt_footer: string
 }
 
+export interface RegisterOwnerPayload {
+  name: string
+  email: string
+  password: string
+  phone?: string
+}
+
+export interface CreateWorkspacePayload {
+  name: string
+  business_type?: string
+  phone?: string
+  email?: string
+  address?: string
+  currency?: string
+  tax_rate?: number
+}
+
 interface AuthContextType {
   user: User | null
   workspace: Workspace | null
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  registerOwner: (data: RegisterOwnerPayload) => Promise<void>
+  createWorkspace: (data: CreateWorkspacePayload) => Promise<void>
+  switchWorkspace: (workspaceId: number) => Promise<void>
   registerWorkspace: (data: any) => Promise<void>
   logout: () => void
   refreshProfile: () => Promise<void>
@@ -87,11 +107,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !token) {
-      if (!pathname.startsWith("/login") && !pathname.startsWith("/register")) {
+      // Landing page "/" and auth pages are completely public
+      if (pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/register")) {
         router.push("/login")
       }
+    } else if (!isLoading && token && user) {
+      if (!user.workspace_id || user.workspace_id === 0) {
+        if (!pathname.startsWith("/onboarding")) {
+          router.push("/onboarding")
+        }
+      } else {
+        if (pathname.startsWith("/onboarding") || pathname.startsWith("/login") || pathname.startsWith("/register")) {
+          router.push("/pos")
+        }
+      }
     }
-  }, [isLoading, token, pathname, router])
+  }, [isLoading, token, user, pathname, router])
 
   const login = async (email: string, password: string) => {
     const res = await apiClient.post("/auth/login", { email, password })
@@ -102,8 +133,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setWorkspace(newWorkspace)
       localStorage.setItem("thekasir_token", newToken)
       localStorage.setItem("thekasir_user", JSON.stringify(newUser))
+      if (newWorkspace) {
+        localStorage.setItem("thekasir_workspace", JSON.stringify(newWorkspace))
+      } else {
+        localStorage.removeItem("thekasir_workspace")
+      }
+
+      if (!newUser.workspace_id || newUser.workspace_id === 0) {
+        router.push("/onboarding")
+      } else {
+        router.push("/pos")
+      }
+    }
+  }
+
+  const registerOwner = async (data: RegisterOwnerPayload) => {
+    const res = await apiClient.post("/auth/register", data)
+    if (res.data.success) {
+      const { token: newToken, user: newUser, workspace: newWorkspace } = res.data.data
+      setToken(newToken)
+      setUser(newUser)
+      setWorkspace(newWorkspace || null)
+      localStorage.setItem("thekasir_token", newToken)
+      localStorage.setItem("thekasir_user", JSON.stringify(newUser))
+      localStorage.removeItem("thekasir_workspace")
+      router.push("/onboarding")
+    }
+  }
+
+  const createWorkspace = async (data: CreateWorkspacePayload) => {
+    const res = await apiClient.post("/auth/create-workspace", data)
+    if (res.data.success) {
+      const { token: newToken, user: newUser, workspace: newWorkspace } = res.data.data
+      setToken(newToken)
+      setUser(newUser)
+      setWorkspace(newWorkspace)
+      localStorage.setItem("thekasir_token", newToken)
+      localStorage.setItem("thekasir_user", JSON.stringify(newUser))
       localStorage.setItem("thekasir_workspace", JSON.stringify(newWorkspace))
       router.push("/pos")
+    }
+  }
+
+  const switchWorkspace = async (workspaceId: number) => {
+    const res = await apiClient.post("/auth/switch-workspace", { workspace_id: workspaceId })
+    if (res.data.success) {
+      const { token: newToken, user: newUser, workspace: newWorkspace } = res.data.data
+      setToken(newToken)
+      setUser(newUser)
+      setWorkspace(newWorkspace)
+      localStorage.setItem("thekasir_token", newToken)
+      localStorage.setItem("thekasir_user", JSON.stringify(newUser))
+      localStorage.setItem("thekasir_workspace", JSON.stringify(newWorkspace))
+      // Refresh to reload all query caches for new workspace data
+      window.location.href = "/pos"
     }
   }
 
@@ -139,6 +222,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         isLoading,
         login,
+        registerOwner,
+        createWorkspace,
+        switchWorkspace,
         registerWorkspace,
         logout,
         refreshProfile,

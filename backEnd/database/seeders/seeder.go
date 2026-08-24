@@ -13,8 +13,8 @@ func RunSeeder(db *gorm.DB) error {
 	var workspaceCount int64
 	db.Model(&database.Workspace{}).Count(&workspaceCount)
 	if workspaceCount > 0 {
-		log.Println("Database seeder dilewati (sudah ada data).")
-		return nil
+		log.Println("Database seeder dilewati (sudah ada data). Memperbarui akun demo default...")
+		return EnsureDemoUsers(db)
 	}
 
 	log.Println("Memulai seeding data awal...")
@@ -44,7 +44,7 @@ func RunSeeder(db *gorm.DB) error {
 	// 3. Create Users
 	users := []database.User{
 		{
-			WorkspaceID:  defaultWorkspace.ID,
+			WorkspaceID:  &defaultWorkspace.ID,
 			Name:         "Rifky Owner",
 			Email:        "owner@thekasir.com",
 			PasswordHash: string(hashedPassword),
@@ -53,7 +53,7 @@ func RunSeeder(db *gorm.DB) error {
 			Phone:        "08111111111",
 		},
 		{
-			WorkspaceID:  defaultWorkspace.ID,
+			WorkspaceID:  &defaultWorkspace.ID,
 			Name:         "Budi Admin",
 			Email:        "admin@thekasir.com",
 			PasswordHash: string(hashedPassword),
@@ -62,7 +62,7 @@ func RunSeeder(db *gorm.DB) error {
 			Phone:        "08222222222",
 		},
 		{
-			WorkspaceID:  defaultWorkspace.ID,
+			WorkspaceID:  &defaultWorkspace.ID,
 			Name:         "Siti Kasir",
 			Email:        "kasir@thekasir.com",
 			PasswordHash: string(hashedPassword),
@@ -228,5 +228,67 @@ func RunSeeder(db *gorm.DB) error {
 	}
 
 	log.Println("Seeding database selesai dengan sukses!")
+	return nil
+}
+
+// EnsureDemoUsers guarantees that the 3 demo accounts exist with password "password123"
+func EnsureDemoUsers(db *gorm.DB) error {
+	var firstWs database.Workspace
+	if err := db.Order("id ASC").First(&firstWs).Error; err != nil {
+		return nil
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	demoUsers := []database.User{
+		{
+			WorkspaceID:  &firstWs.ID,
+			Name:         "Rifky Owner",
+			Email:        "owner@thekasir.com",
+			PasswordHash: string(hashedPassword),
+			Role:         "OWNER",
+			Status:       "ACTIVE",
+			Phone:        "08111111111",
+		},
+		{
+			WorkspaceID:  &firstWs.ID,
+			Name:         "Budi Admin",
+			Email:        "admin@thekasir.com",
+			PasswordHash: string(hashedPassword),
+			Role:         "ADMIN",
+			Status:       "ACTIVE",
+			Phone:        "08222222222",
+		},
+		{
+			WorkspaceID:  &firstWs.ID,
+			Name:         "Siti Kasir",
+			Email:        "kasir@thekasir.com",
+			PasswordHash: string(hashedPassword),
+			Role:         "CASHIER",
+			Status:       "ACTIVE",
+			Phone:        "08333333333",
+		},
+	}
+
+	for _, u := range demoUsers {
+		var existing database.User
+		if err := db.Where("email = ?", u.Email).First(&existing).Error; err != nil {
+			// Buat baru jika belum ada
+			db.Create(&u)
+		} else {
+			// Update password dan pastikan aktif serta terhubung ke workspace
+			db.Model(&database.User{}).Where("id = ?", existing.ID).Updates(map[string]any{
+				"password_hash": string(hashedPassword),
+				"status":        "ACTIVE",
+				"workspace_id":  firstWs.ID,
+				"role":          u.Role,
+			})
+		}
+	}
+
+	log.Println("Akun demo default (Owner, Admin, Kasir) berhasil diperbarui dan siap digunakan (password: password123).")
 	return nil
 }

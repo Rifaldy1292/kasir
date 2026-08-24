@@ -140,9 +140,9 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="flex justify-center border-t border-border pt-4 text-xs text-muted-foreground">
-            <span>Ingin membuat toko baru? </span>
+            <span>Ingin membuka bisnis baru? </span>
             <a href="/register" className="font-semibold text-primary hover:underline ml-1">
-              Daftar Workspace Baru
+              Daftar Akun Owner Baru
             </a>
           </CardFooter>
         </Card>

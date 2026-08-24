@@ -9,6 +9,7 @@ import { formatIDR, getImageUrl } from "@/lib/formatters"
 import { AppSidebar } from "@/components/global/app-sidebar"
 import { AppHeader } from "@/components/global/app-header"
 import { ReceiptModal } from "@/components/global/receipt-modal"
+import { AIChatWidget } from "@/components/global/ai-chat-widget"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -821,6 +822,9 @@ export default function PosPage() {
         onOpenChange={setIsReceiptOpen}
         transaction={completedTx}
       />
+
+      {/* Floating AI Business Assistant Chatbot */}
+      <AIChatWidget />
     </div>
   )
 }

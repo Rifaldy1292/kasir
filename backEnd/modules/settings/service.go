@@ -63,12 +63,17 @@ func (s *settingsService) AddStaff(workspaceID uint, dto CreateUserDto) (*databa
 		return nil, err
 	}
 
+	role := dto.Role
+	if role != "ADMIN" && role != "CASHIER" {
+		role = "CASHIER"
+	}
+
 	user := &database.User{
-		WorkspaceID:  workspaceID,
+		WorkspaceID:  &workspaceID,
 		Name:         dto.Name,
 		Email:        dto.Email,
 		PasswordHash: string(hashedPassword),
-		Role:         dto.Role,
+		Role:         role,
 		Status:       "ACTIVE",
 		Phone:        dto.Phone,
 	}
