@@ -1,0 +1,45 @@
+# Logs
+logs/
+*.log
+backEnd/logs/
+backEnd/logs/*
+backEnd/build-errors.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+backEnd/.env
+frontEnd/.env.local
+frontEnd/.env.*.local
+
+# Binaries and executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+backEnd/tmp/
+backEnd/gin-quickstart.exe
+backEnd/tmp/*
+
+# Uploads
+backEnd/uploads/*
+!backEnd/uploads/.gitkeep
+
+# Dependencies
+node_modules/
+frontEnd/node_modules/
+frontEnd/.pnp
+frontEnd/.pnp.js
+
+# Next.js Build Outputs
+frontEnd/.next/
+frontEnd/out/
+frontEnd/build/
+frontEnd/.vercel/
+frontEnd/*.tsbuildinfo
+
+# OS Files
+.DS_Store
+Thumbs.db

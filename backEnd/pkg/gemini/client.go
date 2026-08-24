@@ -28,7 +28,7 @@ func NewGeminiClient() *GeminiClient {
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	model := os.Getenv("GEMINI_MODEL")
 	if model == "" {
-		model = "gemini-2.0-flash"
+		model = "gemini-3.6-flash"
 	}
 	return &GeminiClient{
 		apiKey: apiKey,
