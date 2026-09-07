@@ -27,6 +27,7 @@ import {
   ChevronsUpDown,
   Truck,
   Sparkles,
+  ShieldCheck,
   X,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -61,10 +62,14 @@ export function AppSidebar() {
     { label: "Pelanggan", href: "/customers", icon: Users },
     { label: "Pemasok / Supplier", href: "/suppliers", icon: Truck },
     { label: "Laporan & Analitik", href: "/reports", icon: BarChart3 },
+    { label: "Audit Log Sistem", href: "/logs", icon: ShieldCheck, roles: ["OWNER", "ADMIN"] },
     { label: "Pengaturan", href: "/settings", icon: Settings },
   ]
 
   const filteredNavItems = navItems.filter((item) => {
+    if (item.roles && !item.roles.includes(user?.role || "")) {
+      return false
+    }
     if (user?.role === "CASHIER") {
       return ["/pos", "/transactions", "/customers", "/inventory"].includes(item.href)
     }

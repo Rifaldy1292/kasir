@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"time"
@@ -30,17 +31,50 @@ import (
 )
 
 func main() {
+	// Parse command-line flags & arguments
+	migrateFlag := flag.Bool("migrate", false, "Jalankan migrasi database lalu keluar")
+	seedFlag := flag.Bool("seed", false, "Jalankan seeder database awal lalu keluar")
+	flag.Parse()
+
+	shouldMigrate := *migrateFlag
+	shouldSeed := *seedFlag
+
+	// Dukung juga positional arguments (contoh: ./main.exe migrate, ./main.exe seed)
+	for _, arg := range flag.Args() {
+		switch arg {
+		case "migrate":
+			shouldMigrate = true
+		case "seed":
+			shouldSeed = true
+		case "migrate:seed":
+			shouldMigrate = true
+			shouldSeed = true
+		}
+	}
+
 	// 1. Initialize PostgreSQL Database
 	db := config.InitDB()
 
-	// 2. Run Database Auto Migration
-	if err := database.RunMigration(db); err != nil {
-		log.Fatalf("Gagal menjalankan migrasi database: %v", err)
-	}
+	// Jika ada flag/argumen migrasi atau seeder, jalankan lalu keluar
+	if shouldMigrate || shouldSeed {
+		if shouldMigrate {
+			log.Println("Menjalankan migrasi database...")
+			if err := database.RunMigration(db); err != nil {
+				log.Fatalf("Gagal menjalankan migrasi database: %v", err)
+			}
+			log.Println("Migrasi database berhasil selesai.")
+		}
 
-	// 3. Run Initial Data Seeder
-	if err := seeders.RunSeeder(db); err != nil {
-		log.Printf("Peringatan seeder: %v", err)
+		if shouldSeed {
+			log.Println("Menjalankan seeder database...")
+			if err := seeders.RunSeeder(db); err != nil {
+				log.Fatalf("Gagal menjalankan seeder database: %v", err)
+			}
+			log.Println("Seeder database berhasil selesai.")
+		}
+
+		log.Println("Operasi database selesai.")
+		return
 	}
 
 	// 4. Mulai log cleanup scheduler (hapus file log > 7 hari setiap 24 jam)
