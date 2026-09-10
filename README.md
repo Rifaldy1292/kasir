@@ -7,25 +7,20 @@ Panduan ringkas untuk build & menjalankan backend dan frontend theKasir.
 ## 1. Backend (Go + Gin + PostgreSQL)
 
 Masuk ke direktori backend:
+
 ```bash
 cd backEnd
 ```
 
 ### A. Build Binary Backend
 
-**Windows:**
 ```bash
-go build -o main.exe main.go
-```
 
-**Linux / macOS:**
-```bash
-go build -o main main.go
+go build -o main.exe .
 ```
-
----
 
 ### B. Migrasi Database (Pertama kali / saat ada update skema)
+
 Jalankan migrasi skema tabel database:
 
 - **Menggunakan Go source code:**
@@ -33,6 +28,7 @@ Jalankan migrasi skema tabel database:
   go run main.go -migrate
   ```
 - **Menggunakan Binary yang sudah di-build:**
+
   ```bash
   # Windows
   ./main.exe -migrate
@@ -44,6 +40,7 @@ Jalankan migrasi skema tabel database:
 ---
 
 ### C. Seeding Data Awal (Opsional / Akun Demo)
+
 Mengisi data awal seperti workspace default, kategori, produk, dan akun demo:
 
 - **Menggunakan Go source code:**
@@ -51,6 +48,7 @@ Mengisi data awal seperti workspace default, kategori, produk, dan akun demo:
   go run main.go -seed
   ```
 - **Menggunakan Binary:**
+
   ```bash
   # Windows
   ./main.exe -seed
@@ -60,6 +58,7 @@ Mengisi data awal seperti workspace default, kategori, produk, dan akun demo:
   ```
 
 > **Tips:** Anda bisa menjalankan migrasi dan seeder sekaligus:
+>
 > ```bash
 > go run main.go -migrate -seed
 > # atau
@@ -75,6 +74,7 @@ Mengisi data awal seperti workspace default, kategori, produk, dan akun demo:
   go run main.go
   ```
 - **Mode Production (Menggunakan Binary):**
+
   ```bash
   # Windows
   ./main.exe
@@ -83,29 +83,34 @@ Mengisi data awal seperti workspace default, kategori, produk, dan akun demo:
   ./main
   ```
 
-*Server akan berjalan di `http://localhost:8080` (atau port sesuai environment variable `PORT`).*
+_Server akan berjalan di `http://localhost:8080` (atau port sesuai environment variable `PORT`)._
 
 ---
 
 ## 2. Frontend (Next.js)
 
 Masuk ke direktori frontend:
+
 ```bash
 cd frontEnd
 ```
 
 ### A. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### B. Menjalankan Development Server
+
 ```bash
 npm run dev
 ```
-*Aplikasi frontend dapat diakses di `http://localhost:3000`.*
+
+_Aplikasi frontend dapat diakses di `http://localhost:3000`._
 
 ### C. Build & Menjalankan Mode Production
+
 ```bash
 # 1. Build project
 npm run build
@@ -119,6 +124,7 @@ npm run start
 ## 3. Akun Demo Default
 
 Jika sudah menjalankan perintah `-seed`:
+
 - **Owner**: `owner@thekasir.com` / `password123`
 - **Admin**: `admin@thekasir.com` / `password123`
 - **Kasir**: `kasir@thekasir.com` / `password123`
