@@ -73,6 +73,7 @@ export default function PosPage() {
     setDiscountAmount,
     setNotes,
     clearCart,
+    syncWithCatalog,
     holdCurrentCart,
     resumeCart,
     deleteHeldCart,
@@ -118,7 +119,16 @@ export default function PosPage() {
       const res = await apiClient.get(url)
       return res.data.data || []
     },
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   })
+
+  // Sync cart items whenever products catalog is refetched with updated prices or stock
+  useEffect(() => {
+    if (products && products.length > 0) {
+      syncWithCatalog(products)
+    }
+  }, [products, syncWithCatalog])
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers"],

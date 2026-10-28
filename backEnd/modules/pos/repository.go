@@ -54,9 +54,14 @@ func (r *posRepository) CreateTransaction(txModel *database.Transaction, movemen
 				if err := tx.Create(&m).Error; err != nil {
 					return err
 				}
-				if err := tx.Model(&database.Product{}).Where("id = ? AND workspace_id = ?", m.ProductID, m.WorkspaceID).
-					Update("stock", gorm.Expr("stock - ?", m.Qty)).Error; err != nil {
-					return err
+				res := tx.Model(&database.Product{}).
+					Where("id = ? AND workspace_id = ? AND stock >= ?", m.ProductID, m.WorkspaceID, m.Qty).
+					Update("stock", gorm.Expr("stock - ?", m.Qty))
+				if res.Error != nil {
+					return res.Error
+				}
+				if res.RowsAffected == 0 {
+					return fmt.Errorf("stok produk (ID: %d) tidak mencukupi atau baru saja terjual oleh kasir lain", m.ProductID)
 				}
 			}
 

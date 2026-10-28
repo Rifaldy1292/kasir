@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { persist, createJSONStorage } from "zustand/middleware"
 
 export interface CartProduct {
   id: number
@@ -27,7 +28,7 @@ export interface Customer {
 
 export interface HeldCart {
   id: string
-  heldAt: Date
+  heldAt: Date | string
   customerName: string
   items: CartItem[]
   discountAmount: number
@@ -52,6 +53,7 @@ interface CartState {
   setDiscountAmount: (discount: number) => void
   setNotes: (notes: string) => void
   clearCart: () => void
+  syncWithCatalog: (catalogProducts: CartProduct[]) => void
 
   // Hold & Resume
   holdCurrentCart: (label?: string) => void
@@ -64,7 +66,9 @@ interface CartState {
   getTotalAmount: () => number
 }
 
-export const useCartStore = create<CartState>((set, get) => ({
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
   items: [],
   customer: null,
   taxRate: 0,
@@ -150,6 +154,41 @@ export const useCartStore = create<CartState>((set, get) => ({
       notes: "",
     }),
 
+  syncWithCatalog: (catalogProducts) => {
+    if (!catalogProducts || catalogProducts.length === 0) return
+    const catalogMap = new Map<number, CartProduct>()
+    for (const p of catalogProducts) {
+      catalogMap.set(p.id, p)
+    }
+
+    const { items } = get()
+    let hasChanged = false
+
+    const updatedItems = items.map((item) => {
+      const latest = catalogMap.get(item.product.id)
+      if (latest) {
+        if (
+          latest.sell_price !== item.product.sell_price ||
+          latest.name !== item.product.name ||
+          latest.stock !== item.product.stock
+        ) {
+          hasChanged = true
+          const subtotal = Math.max(0, latest.sell_price * item.qty - item.discountAmount)
+          return {
+            ...item,
+            product: latest,
+            subtotal,
+          }
+        }
+      }
+      return item
+    })
+
+    if (hasChanged) {
+      set({ items: updatedItems })
+    }
+  },
+
   holdCurrentCart: (label) => {
     const { items, customer, discountAmount, notes, heldCarts } = get()
     if (items.length === 0) return
@@ -208,4 +247,18 @@ export const useCartStore = create<CartState>((set, get) => ({
     const discount = get().discountAmount
     return Math.max(0, subtotal + tax - discount)
   },
-}))
+    }),
+    {
+      name: "thekasir_pos_cart",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        items: state.items,
+        customer: state.customer,
+        taxRate: state.taxRate,
+        discountAmount: state.discountAmount,
+        notes: state.notes,
+        heldCarts: state.heldCarts,
+      }),
+    }
+  )
+)
