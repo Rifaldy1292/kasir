@@ -180,7 +180,16 @@ export function AppSidebar() {
       <div className="flex-1 px-2.5 py-2 space-y-1 overflow-y-auto">
         {filteredNavItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== "/pos" && pathname.startsWith(item.href + "/"))
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/pos" &&
+              pathname.startsWith(item.href + "/") &&
+              !filteredNavItems.some(
+                (other) =>
+                  other.href !== item.href &&
+                  other.href.startsWith(item.href) &&
+                  pathname.startsWith(other.href)
+              ))
           return (
             <Link
               key={item.href}
