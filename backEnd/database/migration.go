@@ -33,6 +33,7 @@ func RunMigration(db *gorm.DB) error {
 			&PurchaseItem{},
 			&AuditLog{},
 			&SystemLog{},
+			&SubscriptionPlan{},
 		}
 
 		for _, model := range models {
@@ -57,6 +58,7 @@ func RunMigration(db *gorm.DB) error {
 		&Workspace{},
 		&User{},
 		&SystemLog{},
+		&SubscriptionPlan{},
 	}
 	for _, model := range newTables {
 		if err := db.AutoMigrate(model); err != nil {

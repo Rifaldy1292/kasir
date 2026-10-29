@@ -64,9 +64,13 @@ export function AppSidebar() {
     { label: "Laporan & Analitik", href: "/reports", icon: BarChart3 },
     { label: "Audit Log Sistem", href: "/logs", icon: ShieldCheck, roles: ["OWNER", "ADMIN"] },
     { label: "Pengaturan", href: "/settings", icon: Settings },
+    { label: "Portal CEO", href: "/superadmin", icon: ShieldCheck, roles: ["SUPERADMIN"] },
   ]
 
   const filteredNavItems = navItems.filter((item) => {
+    if (user?.role === "SUPERADMIN") {
+      return item.href === "/superadmin"
+    }
     if (item.roles && !item.roles.includes(user?.role || "")) {
       return false
     }
@@ -81,27 +85,36 @@ export function AppSidebar() {
       {/* Brand / Workspace Header — Click to Switch Workspace */}
       <div className="p-3 border-b border-border flex items-center justify-between gap-2 h-16 shrink-0">
         <button
-          onClick={() => setWsSwitcherOpen(true)}
-          className={`flex items-center gap-2.5 overflow-hidden text-left rounded-xl p-1 -m-1 transition-colors hover:bg-muted/60 group cursor-pointer ${
+          onClick={() => {
+            if (user?.role !== "SUPERADMIN") {
+              setWsSwitcherOpen(true)
+            }
+          }}
+          disabled={user?.role === "SUPERADMIN"}
+          className={`flex items-center gap-2.5 overflow-hidden text-left rounded-xl p-1 -m-1 transition-colors ${
+            user?.role !== "SUPERADMIN" ? "hover:bg-muted/60 cursor-pointer" : "cursor-default"
+          } group ${
             collapsed ? "justify-center w-full" : "flex-1"
           }`}
-          title="Klik untuk ganti toko / tambah cabang baru"
+          title={user?.role === "SUPERADMIN" ? "Portal Superadmin theKasir" : "Klik untuk ganti toko / tambah cabang baru"}
         >
           <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black shadow-xs shrink-0 group-hover:scale-105 transition-transform">
-            tK
+            {user?.role === "SUPERADMIN" ? "CEO" : "tK"}
           </div>
           {!collapsed && (
             <div className="overflow-hidden flex-1">
               <div className="flex items-center justify-between gap-1">
                 <h1 className="text-xs font-bold truncate leading-tight text-foreground group-hover:text-primary transition-colors">
-                  {workspace?.name || "theKasir App"}
+                  {user?.role === "SUPERADMIN" ? "theKasir SaaS HQ" : (workspace?.name || "theKasir App")}
                 </h1>
-                <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary shrink-0 opacity-70 group-hover:opacity-100" />
+                {user?.role !== "SUPERADMIN" && (
+                  <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary shrink-0 opacity-70 group-hover:opacity-100" />
+                )}
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <Building2 className="w-2.5 h-2.5 text-muted-foreground" />
                 <span className="text-[10px] text-muted-foreground truncate">
-                  {workspace?.business_type || "POS System"}
+                  {user?.role === "SUPERADMIN" ? "Superadmin Portal" : (workspace?.business_type || "POS System")}
                 </span>
               </div>
             </div>
@@ -135,45 +148,47 @@ export function AppSidebar() {
       </div>
 
       {/* Shift / Drawer Status Pill */}
-      {!collapsed ? (
-        <div className="p-2.5 mx-3 my-2 rounded-xl bg-muted/40 border border-border flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                isShiftOpen ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
-              }`}
-            />
-            <div className="text-xs">
-              <div className="font-semibold text-[11px] leading-tight">
-                {isShiftOpen ? "Kasir Aktif" : "Kasir Tutup"}
-              </div>
-              <div className="text-[9px] text-muted-foreground">
-                {isShiftOpen ? "Shift berjalan" : "Buka shift"}
+      {user?.role !== "SUPERADMIN" && (
+        !collapsed ? (
+          <div className="p-2.5 mx-3 my-2 rounded-xl bg-muted/40 border border-border flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                  isShiftOpen ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+                }`}
+              />
+              <div className="text-xs">
+                <div className="font-semibold text-[11px] leading-tight">
+                  {isShiftOpen ? "Kasir Aktif" : "Kasir Tutup"}
+                </div>
+                <div className="text-[9px] text-muted-foreground">
+                  {isShiftOpen ? "Shift berjalan" : "Buka shift"}
+                </div>
               </div>
             </div>
+            <Button
+              size="sm"
+              variant={isShiftOpen ? "outline" : "default"}
+              className="h-6 text-[11px] px-2 shadow-xs"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <Wallet className="w-3 h-3 mr-1" />
+              {isShiftOpen ? "Laci" : "Buka"}
+            </Button>
           </div>
-          <Button
-            size="sm"
-            variant={isShiftOpen ? "outline" : "default"}
-            className="h-6 text-[11px] px-2 shadow-xs"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <Wallet className="w-3 h-3 mr-1" />
-            {isShiftOpen ? "Laci" : "Buka"}
-          </Button>
-        </div>
-      ) : (
-        <div className="py-2 flex justify-center shrink-0">
-          <Button
-            size="icon"
-            variant={isShiftOpen ? "outline" : "default"}
-            className="h-8 w-8 rounded-lg shadow-xs"
-            onClick={() => setDrawerOpen(true)}
-            title={isShiftOpen ? "Laci Kasir (Aktif)" : "Buka Shift Kasir"}
-          >
-            <Wallet className="w-3.5 h-3.5" />
-          </Button>
-        </div>
+        ) : (
+          <div className="py-2 flex justify-center shrink-0">
+            <Button
+              size="icon"
+              variant={isShiftOpen ? "outline" : "default"}
+              className="h-8 w-8 rounded-lg shadow-xs"
+              onClick={() => setDrawerOpen(true)}
+              title={isShiftOpen ? "Laci Kasir (Aktif)" : "Buka Shift Kasir"}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        )
       )}
 
       {/* Navigation Links */}

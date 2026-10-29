@@ -22,6 +22,7 @@ import (
 	"gin-quickstart/modules/purchase"
 	"gin-quickstart/modules/report"
 	"gin-quickstart/modules/settings"
+	"gin-quickstart/modules/superadmin"
 	"gin-quickstart/modules/supplier"
 	"gin-quickstart/modules/upload"
 	"gin-quickstart/pkg/logger"
@@ -129,6 +130,7 @@ func main() {
 		upload.RegisterRoutes(apiGroup, db)
 		logs.RegisterRoutes(apiGroup, db)
 		ai.RegisterRoutes(apiGroup, db)
+		superadmin.RegisterRoutes(apiGroup, db)
 	}
 
 

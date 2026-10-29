@@ -45,6 +45,7 @@ type UserResponseDto struct {
 	Role        string `json:"role"`
 	Status      string `json:"status"`
 	Phone       string `json:"phone"`
+	PlanCode    string `json:"plan_code"`
 }
 
 type LoginResponseDto struct {

@@ -8,15 +8,15 @@ import { useSidebarStore } from "@/lib/sidebar-store"
 import { CashDrawerDialog } from "./cash-drawer-dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Wallet, Menu, PanelLeft } from "lucide-react"
+import { Wallet, Menu, PanelLeft, Crown, Sparkles, Shield } from "lucide-react"
 
 interface AppHeaderProps {
-  title: string
+  title?: string
   subtitle?: string
   children?: React.ReactNode
 }
 
-export function AppHeader({ title, subtitle, children }: AppHeaderProps) {
+export function AppHeader({ title = "theKasir", subtitle, children }: AppHeaderProps) {
   const { user } = useAuth()
   const { toggleMobile, toggleCollapse } = useSidebarStore()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -69,6 +69,28 @@ export function AppHeader({ title, subtitle, children }: AppHeaderProps) {
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {children}
+
+          {/* SaaS Plan Badge */}
+          {user?.role === "SUPERADMIN" ? (
+            <Badge className="bg-gradient-to-r from-rose-600 to-red-600 text-white font-black text-[10px] sm:text-xs px-2.5 py-1 rounded-full border-0 shadow-xs flex items-center gap-1">
+              <Shield className="w-3 h-3 fill-current" />
+              <span>Superadmin</span>
+            </Badge>
+          ) : user?.plan_code === "PLATINUM" ? (
+            <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-[10px] sm:text-xs px-2.5 py-1 rounded-full border-0 shadow-xs flex items-center gap-1">
+              <Crown className="w-3 h-3 fill-current" />
+              <span>Platinum</span>
+            </Badge>
+          ) : user?.plan_code === "PREMIUM" ? (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-[10px] sm:text-xs px-2.5 py-1 rounded-full border-0 shadow-xs flex items-center gap-1">
+              <Sparkles className="w-3 h-3 fill-current" />
+              <span>Premium</span>
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="bg-muted text-muted-foreground font-semibold text-[10px] sm:text-xs px-2 py-0.5 rounded-full border border-border">
+              Starter
+            </Badge>
+          )}
 
           <Button
             variant="outline"

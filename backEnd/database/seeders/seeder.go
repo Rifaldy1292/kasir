@@ -245,6 +245,16 @@ func EnsureDemoUsers(db *gorm.DB) error {
 
 	demoUsers := []database.User{
 		{
+			WorkspaceID:  nil, // Superadmin tidak terikat workspace spesifik
+			Name:         "CEO Superadmin",
+			Email:        "ceo@thekasir.com",
+			PasswordHash: string(hashedPassword),
+			Role:         "SUPERADMIN",
+			Status:       "ACTIVE",
+			Phone:        "08000000000",
+			PlanCode:     "PLATINUM",
+		},
+		{
 			WorkspaceID:  &firstWs.ID,
 			Name:         "Rifky Owner",
 			Email:        "owner@thekasir.com",
@@ -252,6 +262,7 @@ func EnsureDemoUsers(db *gorm.DB) error {
 			Role:         "OWNER",
 			Status:       "ACTIVE",
 			Phone:        "08111111111",
+			PlanCode:     "STARTER",
 		},
 		{
 			WorkspaceID:  &firstWs.ID,
@@ -261,6 +272,7 @@ func EnsureDemoUsers(db *gorm.DB) error {
 			Role:         "ADMIN",
 			Status:       "ACTIVE",
 			Phone:        "08222222222",
+			PlanCode:     "STARTER",
 		},
 		{
 			WorkspaceID:  &firstWs.ID,
@@ -270,6 +282,7 @@ func EnsureDemoUsers(db *gorm.DB) error {
 			Role:         "CASHIER",
 			Status:       "ACTIVE",
 			Phone:        "08333333333",
+			PlanCode:     "STARTER",
 		},
 	}
 
@@ -279,16 +292,68 @@ func EnsureDemoUsers(db *gorm.DB) error {
 			// Buat baru jika belum ada
 			db.Create(&u)
 		} else {
-			// Update password dan pastikan aktif serta terhubung ke workspace
-			db.Model(&database.User{}).Where("id = ?", existing.ID).Updates(map[string]any{
+			// Update password dan pastikan aktif serta terhubung ke workspace jika bukan SUPERADMIN
+			updateFields := map[string]any{
 				"password_hash": string(hashedPassword),
 				"status":        "ACTIVE",
-				"workspace_id":  firstWs.ID,
 				"role":          u.Role,
-			})
+			}
+			if u.Role != "SUPERADMIN" {
+				updateFields["workspace_id"] = firstWs.ID
+			}
+			db.Model(&database.User{}).Where("id = ?", existing.ID).Updates(updateFields)
 		}
 	}
 
-	log.Println("Akun demo default (Owner, Admin, Kasir) berhasil diperbarui dan siap digunakan (password: password123).")
+	_ = EnsureSubscriptionPlans(db)
+
+	log.Println("Akun demo default (Superadmin, Owner, Admin, Kasir) & paket langganan siap digunakan (password: password123).")
+	return nil
+}
+
+// EnsureSubscriptionPlans seeds default SaaS subscription tiers if not already present
+func EnsureSubscriptionPlans(db *gorm.DB) error {
+	plans := []database.SubscriptionPlan{
+		{
+			Code:          "STARTER",
+			Name:          "Starter UMKM",
+			Description:   "Untuk toko rintisan yang ingin langsung jualan.",
+			PriceMonthly:  0,
+			PriceYearly:   0,
+			MaxUsers:      2,
+			MaxWorkspaces: 1,
+			Features:      "1 Toko Aktif,Hingga 2 Staf Kasir,Transaksi Kasir Tanpa Batas,Cetak Struk Thermal",
+			IsActive:      true,
+		},
+		{
+			Code:          "PREMIUM",
+			Name:          "Pro Bisnis + AI",
+			Description:   "Untuk pemilik toko yang ingin analisis laba & prediksi stok AI.",
+			PriceMonthly:  89000,
+			PriceYearly:   69000,
+			MaxUsers:      10,
+			MaxWorkspaces: 2,
+			Features:      "Hingga 2 Cabang Toko,Hingga 10 Karyawan Login Berbeda,Asisten AI Gemini,Prediksi Hari Stok Habis,Laporan Laba Rugi",
+			IsActive:      true,
+		},
+		{
+			Code:          "PLATINUM",
+			Name:          "Multi-Cabang Platinum",
+			Description:   "Untuk pemilik usaha dengan jaringan toko berkembang.",
+			PriceMonthly:  199000,
+			PriceYearly:   159000,
+			MaxUsers:      10,
+			MaxWorkspaces: 10,
+			Features:      "Hingga 10 Cabang Toko,Hingga 10 Karyawan Login Berbeda,Rekap Gabungan Seluruh Cabang,Audit Log Lengkap,Dukungan Prioritas",
+			IsActive:      true,
+		},
+	}
+
+	for _, p := range plans {
+		var existing database.SubscriptionPlan
+		if err := db.Where("code = ?", p.Code).First(&existing).Error; err != nil {
+			db.Create(&p)
+		}
+	}
 	return nil
 }

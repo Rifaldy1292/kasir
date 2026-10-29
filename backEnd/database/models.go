@@ -36,9 +36,11 @@ type User struct {
 	Name         string         `gorm:"type:varchar(255);not null" json:"name"`
 	Email        string         `gorm:"type:varchar(255);not null;index" json:"email"`
 	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"`
-	Role         string         `gorm:"type:varchar(50);not null;default:'CASHIER'" json:"role"` // OWNER, ADMIN, CASHIER
+	Role         string         `gorm:"type:varchar(50);not null;default:'CASHIER'" json:"role"` // SUPERADMIN, OWNER, ADMIN, CASHIER
 	Status       string         `gorm:"type:varchar(20);default:'ACTIVE'" json:"status"`         // ACTIVE, INACTIVE
 	Phone        string         `gorm:"type:varchar(50)" json:"phone"`
+	PlanCode     string         `gorm:"type:varchar(50);default:'STARTER'" json:"plan_code"`     // STARTER, PREMIUM, PLATINUM
+	PlanExpiresAt *time.Time    `json:"plan_expires_at"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
@@ -284,3 +286,20 @@ type SystemLog struct {
 	IPAddress   string    `gorm:"type:varchar(50)" json:"ip_address"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+// SubscriptionPlan represents a pricing tier in the SaaS platform
+type SubscriptionPlan struct {
+	ID            uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	Code          string    `gorm:"type:varchar(50);uniqueIndex;not null" json:"code"` // STARTER, PREMIUM, PLATINUM
+	Name          string    `gorm:"type:varchar(100);not null" json:"name"`
+	Description   string    `gorm:"type:text" json:"description"`
+	PriceMonthly  float64   `gorm:"type:decimal(15,2);not null;default:0.0" json:"price_monthly"`
+	PriceYearly   float64   `gorm:"type:decimal(15,2);not null;default:0.0" json:"price_yearly"`
+	MaxUsers      int       `gorm:"not null;default:2" json:"max_users"`
+	MaxWorkspaces int       `gorm:"not null;default:1" json:"max_workspaces"`
+	Features      string    `gorm:"type:text" json:"features"` // comma-separated or JSON list of feature labels
+	IsActive      bool      `gorm:"default:true" json:"is_active"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+

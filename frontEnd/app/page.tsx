@@ -969,25 +969,25 @@ export default function LandingPage() {
           <div className="p-6 sm:p-7 rounded-2xl border-2 border-blue-600 bg-blue-50/30 flex flex-col justify-between space-y-6 shadow-xl shadow-blue-600/10 relative">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-lg text-slate-900">Pro Bisnis + AI</h3>
+                <h3 className="font-bold text-lg text-slate-900">Premium Pro + AI</h3>
                 <Badge className="bg-blue-600 text-white text-[10px] font-bold border-none">Rekomendasi</Badge>
               </div>
-              <p className="text-xs text-slate-600">Untuk pemilik toko yang ingin analisis laba &amp; prediksi stok.</p>
+              <p className="text-xs text-slate-600">Untuk bisnis berkembang dengan fitur AI &amp; cabang tambahan.</p>
               <div className="text-3xl font-black text-blue-600 font-mono">
                 {billingPeriod === "monthly" ? "Rp 89.000" : "Rp 69.000"}
                 <span className="text-xs font-normal text-slate-500"> / bulan</span>
               </div>
               <div className="space-y-2.5 text-xs text-slate-800 pt-4 border-t border-blue-100 font-medium">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 font-bold stroke-[3]" /> <strong>Semua Fitur Starter</strong></div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 font-bold stroke-[3]" /> <strong>Asisten AI Gemini 2.0</strong></div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Prediksi Hari Stok Habis</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Hingga 5 Akun Staf Toko</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Laporan HPP &amp; Laba Bersih</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 font-bold stroke-[3]" /> <strong>Maksimal 2 Cabang Toko (Workspace)</strong></div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 font-bold stroke-[3]" /> <strong>Hingga 10 Karyawan Berbeda Login</strong></div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Asisten AI Gemini 2.0 &amp; Prediksi Stok</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Laporan HPP &amp; Laba Bersih Real-Time</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Transaksi Kasir Tanpa Batas</div>
               </div>
             </div>
             <Link href="/register">
               <Button className="w-full text-xs font-bold h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/25">
-                Pilih Paket Pro
+                Pilih Paket Premium
               </Button>
             </Link>
           </div>
@@ -996,24 +996,24 @@ export default function LandingPage() {
           <div className="p-6 sm:p-7 rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div>
-                <h3 className="font-bold text-lg text-slate-900">Multi-Cabang</h3>
-                <p className="text-xs text-slate-500 mt-1">Untuk pemilik usaha dengan jaringan toko bertumbuh.</p>
+                <h3 className="font-bold text-lg text-slate-900">Platinum Enterprise</h3>
+                <p className="text-xs text-slate-500 mt-1">Solusi komprehensif untuk pemilik jaringan cabang luas.</p>
               </div>
               <div className="text-3xl font-black text-slate-900 font-mono">
                 {billingPeriod === "monthly" ? "Rp 199.000" : "Rp 159.000"}
                 <span className="text-xs font-normal text-slate-500"> / bulan</span>
               </div>
               <div className="space-y-2.5 text-xs text-slate-700 pt-4 border-t border-slate-100 font-medium">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> <strong>Multi-Cabang Bebas Tambah</strong></div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Staf &amp; Kasir Tanpa Batas</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> <strong>Hingga 10 Cabang Toko (Workspace)</strong></div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> <strong>Hingga 10 Karyawan Berbeda Login</strong></div>
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Rekap Laporan Gabungan Semua Cabang</div>
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Audit Log Riwayat Staf Lengkap</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Bantuan Teknis Prioritas</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-blue-600 stroke-[3]" /> Bantuan Teknis Prioritas 24/7</div>
               </div>
             </div>
             <Link href="/register">
               <Button variant="outline" className="w-full text-xs font-bold h-10 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 shadow-xs">
-                Mulai Multi-Cabang
+                Mulai Platinum
               </Button>
             </Link>
           </div>

@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"errors"
+
 	"gin-quickstart/database"
 
 	"gorm.io/gorm"
@@ -11,6 +13,7 @@ type SettingsRepository interface {
 	UpdateWorkspace(ws *database.Workspace) error
 	GetUsers(workspaceID uint) ([]database.User, error)
 	GetUserByID(id uint, workspaceID uint) (*database.User, error)
+	GetOwnerByWorkspaceID(workspaceID uint) (*database.User, error)
 	CreateUser(u *database.User) error
 	UpdateUser(u *database.User) error
 	DeleteUser(id uint, workspaceID uint) error
@@ -50,6 +53,23 @@ func (r *settingsRepository) GetUserByID(id uint, workspaceID uint) (*database.U
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *settingsRepository) GetOwnerByWorkspaceID(workspaceID uint) (*database.User, error) {
+	var ws database.Workspace
+	if err := r.db.First(&ws, workspaceID).Error; err != nil {
+		return nil, err
+	}
+	var owner database.User
+	if ws.OwnerID != 0 {
+		if err := r.db.First(&owner, ws.OwnerID).Error; err == nil {
+			return &owner, nil
+		}
+	}
+	if err := r.db.Where("workspace_id = ? AND role = 'OWNER'", workspaceID).First(&owner).Error; err == nil {
+		return &owner, nil
+	}
+	return nil, errors.New("owner tidak ditemukan")
 }
 
 func (r *settingsRepository) CreateUser(u *database.User) error {

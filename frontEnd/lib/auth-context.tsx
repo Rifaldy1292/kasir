@@ -9,9 +9,10 @@ export interface User {
   workspace_id: number
   name: string
   email: string
-  role: "OWNER" | "ADMIN" | "CASHIER"
+  role: "SUPERADMIN" | "OWNER" | "ADMIN" | "CASHIER"
   status: "ACTIVE" | "INACTIVE"
   phone: string
+  plan_code?: string
 }
 
 export interface Workspace {
@@ -112,7 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push("/login")
       }
     } else if (!isLoading && token && user) {
-      if (!user.workspace_id || user.workspace_id === 0) {
+      if (user.role === "SUPERADMIN") {
+        if (!pathname.startsWith("/superadmin")) {
+          router.push("/superadmin")
+        }
+      } else if (!user.workspace_id || user.workspace_id === 0) {
         if (!pathname.startsWith("/onboarding")) {
           router.push("/onboarding")
         }
@@ -139,7 +144,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem("thekasir_workspace")
       }
 
-      if (!newUser.workspace_id || newUser.workspace_id === 0) {
+      if (newUser.role === "SUPERADMIN") {
+        router.push("/superadmin")
+      } else if (!newUser.workspace_id || newUser.workspace_id === 0) {
         router.push("/onboarding")
       } else {
         router.push("/pos")

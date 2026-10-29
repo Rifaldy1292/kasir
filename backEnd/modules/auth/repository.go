@@ -16,6 +16,7 @@ type AuthRepository interface {
 	GetWorkspacesByOwner(userID uint, currentWsID uint) ([]database.Workspace, error)
 	FindWorkspaceByID(id uint) (*database.Workspace, error)
 	UpdateUserActiveWorkspace(userID uint, workspaceID uint) error
+	CountWorkspacesByOwner(ownerID uint) (int64, error)
 }
 
 type authRepository struct {
@@ -86,6 +87,12 @@ func (r *authRepository) FindWorkspaceByID(id uint) (*database.Workspace, error)
 
 func (r *authRepository) UpdateUserActiveWorkspace(userID uint, workspaceID uint) error {
 	return r.db.Model(&database.User{}).Where("id = ?", userID).Update("workspace_id", workspaceID).Error
+}
+
+func (r *authRepository) CountWorkspacesByOwner(ownerID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&database.Workspace{}).Where("owner_id = ?", ownerID).Count(&count).Error
+	return count, err
 }
 
 func (r *authRepository) CreateOwner(user *database.User) error {

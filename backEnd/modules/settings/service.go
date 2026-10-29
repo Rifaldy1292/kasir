@@ -2,6 +2,7 @@ package settings
 
 import (
 	"errors"
+	"fmt"
 
 	"gin-quickstart/database"
 
@@ -58,6 +59,28 @@ func (s *settingsService) GetStaffList(workspaceID uint) ([]database.User, error
 }
 
 func (s *settingsService) AddStaff(workspaceID uint, dto CreateUserDto) (*database.User, error) {
+	// Cek batas kuota staf berdasarkan paket langganan Owner
+	staffList, _ := s.repo.GetUsers(workspaceID)
+	owner, _ := s.repo.GetOwnerByWorkspaceID(workspaceID)
+
+	maxStaff := 2
+	planName := "Starter UMKM"
+	if owner != nil {
+		if owner.PlanCode == "PREMIUM" {
+			maxStaff = 10
+			planName = "Premium"
+		} else if owner.PlanCode == "PLATINUM" || owner.Role == "SUPERADMIN" {
+			maxStaff = 10
+			planName = "Platinum"
+		}
+	}
+
+	if owner == nil || owner.Role != "SUPERADMIN" {
+		if len(staffList) >= maxStaff {
+			return nil, fmt.Errorf("kuota staf mencapai batas maksimal untuk paket %s (maksimal %d staf). Silakan upgrade ke paket yang lebih tinggi.", planName, maxStaff)
+		}
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err

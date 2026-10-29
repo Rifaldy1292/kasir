@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 
 	"gin-quickstart/database"
 	"gin-quickstart/pkg/jwt"
@@ -61,6 +62,7 @@ func (s *authService) Login(dto LoginDto) (*LoginResponseDto, error) {
 			Role:        user.Role,
 			Status:      user.Status,
 			Phone:       user.Phone,
+			PlanCode:    user.PlanCode,
 		},
 		Workspace: user.Workspace,
 	}, nil
@@ -85,6 +87,7 @@ func (s *authService) RegisterOwner(dto RegisterOwnerDto) (*LoginResponseDto, er
 		Status:       "ACTIVE",
 		WorkspaceID:  nil, // NULL in PostgreSQL!
 		Phone:        dto.Phone,
+		PlanCode:     "STARTER",
 	}
 
 	if err := s.repo.CreateOwner(owner); err != nil {
@@ -106,6 +109,7 @@ func (s *authService) RegisterOwner(dto RegisterOwnerDto) (*LoginResponseDto, er
 			Role:        owner.Role,
 			Status:      owner.Status,
 			Phone:       owner.Phone,
+			PlanCode:    owner.PlanCode,
 		},
 		Workspace: nil,
 	}, nil
@@ -117,8 +121,24 @@ func (s *authService) CreateWorkspace(ownerID uint, dto CreateWorkspaceDto) (*Lo
 		return nil, errors.New("akun pengguna tidak ditemukan")
 	}
 
-	if owner.Role != "OWNER" {
+	if owner.Role != "OWNER" && owner.Role != "SUPERADMIN" {
 		return nil, errors.New("hanya akun OWNER yang berhak membuat workspace / toko")
+	}
+
+	// Cek kuota workspace berdasarkan paket langganan
+	wsCount, _ := s.repo.CountWorkspacesByOwner(ownerID)
+	maxWorkspaces := 1
+	planName := "Starter UMKM"
+	if owner.PlanCode == "PREMIUM" {
+		maxWorkspaces = 2
+		planName = "Premium"
+	} else if owner.PlanCode == "PLATINUM" || owner.Role == "SUPERADMIN" {
+		maxWorkspaces = 10
+		planName = "Platinum"
+	}
+
+	if owner.Role != "SUPERADMIN" && int(wsCount) >= maxWorkspaces {
+		return nil, fmt.Errorf("kuota toko/workspace mencapai batas maksimal untuk paket %s (maksimal %d workspace). Silakan upgrade ke paket yang lebih tinggi untuk menambah cabang.", planName, maxWorkspaces)
 	}
 
 	businessType := dto.BusinessType
@@ -164,6 +184,7 @@ func (s *authService) CreateWorkspace(ownerID uint, dto CreateWorkspaceDto) (*Lo
 			Role:        owner.Role,
 			Status:      owner.Status,
 			Phone:       owner.Phone,
+			PlanCode:    owner.PlanCode,
 		},
 		Workspace: createdWs,
 	}, nil
@@ -222,6 +243,7 @@ func (s *authService) RegisterWorkspace(dto RegisterWorkspaceDto) (*LoginRespons
 			Role:        owner.Role,
 			Status:      owner.Status,
 			Phone:       owner.Phone,
+			PlanCode:    "STARTER",
 		},
 		Workspace: ws,
 	}, nil
@@ -263,6 +285,7 @@ func (s *authService) SwitchWorkspace(userID uint, targetWorkspaceID uint) (*Log
 				Role:        targetUser.Role,
 				Status:      targetUser.Status,
 				Phone:       targetUser.Phone,
+				PlanCode:    targetUser.PlanCode,
 			},
 			Workspace: ws,
 		}, nil
@@ -293,6 +316,7 @@ func (s *authService) SwitchWorkspace(userID uint, targetWorkspaceID uint) (*Log
 			Role:        user.Role,
 			Status:      user.Status,
 			Phone:       user.Phone,
+			PlanCode:    user.PlanCode,
 		},
 		Workspace: ws,
 	}, nil
