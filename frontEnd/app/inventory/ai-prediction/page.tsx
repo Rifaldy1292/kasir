@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useAuth } from "@/lib/auth-context"
 import {
   Sparkles,
   RefreshCw,
@@ -32,6 +33,8 @@ import {
   Calendar,
   Layers,
   AlertCircle,
+  Crown,
+  Lock,
 } from "lucide-react"
 
 interface StockPrediction {
@@ -46,6 +49,12 @@ interface StockPrediction {
 }
 
 export default function AIPredictionPage() {
+  const { user } = useAuth()
+  const isPaidPlan =
+    user?.role === "SUPERADMIN" ||
+    user?.plan_code === "PREMIUM" ||
+    user?.plan_code === "PLATINUM"
+
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<"ALL" | "CRITICAL" | "WARNING" | "SAFE">("ALL")
 
@@ -60,6 +69,7 @@ export default function AIPredictionPage() {
       const res = await apiClient.get("/ai/stock-prediction")
       return res.data.data as StockPrediction[]
     },
+    enabled: isPaidPlan,
   })
 
   const predictions = predictionsData || []
@@ -95,14 +105,65 @@ export default function AIPredictionPage() {
         />
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Top Banner & Quick Navigation */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+          {!isPaidPlan ? (
+            <Card className="max-w-2xl mx-auto border-primary/30 shadow-xl bg-gradient-to-br from-card via-card to-primary/5 p-8 text-center my-10">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-xs">
+                <Crown className="w-8 h-8 text-primary" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/5 uppercase font-bold tracking-wider mb-3">
+                Fitur Eksklusif Paket Premium &amp; Platinum
+              </Badge>
+              <h2 className="text-2xl font-black text-foreground tracking-tight">
+                Prediksi Stok Habis Berbasis AI Gemini 2.0
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto mt-2.5 leading-relaxed">
+                Toko Anda saat ini menggunakan paket <strong>{user?.plan_code || "STARTER"}</strong>. Tingkatkan paket Anda ke <strong>Premium</strong> atau <strong>Platinum</strong> untuk membuka prediksi habisnya stok otomatis, rekomendasi kuantitas restock, dan pencegahan kehabisan barang.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-left my-8">
+                <div className="p-3.5 rounded-xl border border-border bg-background/50">
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-foreground mb-1">
+                    <Sparkles className="w-4 h-4 text-primary" /> Sisa Hari Habis
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Deteksi akurat sisa hari stok bertahan sebelum habis.</p>
+                </div>
+                <div className="p-3.5 rounded-xl border border-border bg-background/50">
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-foreground mb-1">
+                    <Calendar className="w-4 h-4 text-emerald-500" /> Tanggal Restock
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Saran tanggal terbaik untuk repeat order ke supplier.</p>
+                </div>
+                <div className="p-3.5 rounded-xl border border-border bg-background/50">
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-foreground mb-1">
+                    <ShoppingCart className="w-4 h-4 text-purple-500" /> Saran Kuantitas
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Rekomendasi jumlah order agar tidak rugi modal menumpuk.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <Link href="/inventory">
+                  <Button variant="outline" className="text-xs h-9">
+                    <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Kembali ke Inventori
+                  </Button>
+                </Link>
+                <Link href="/#harga">
+                  <Button className="text-xs h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md shadow-primary/20">
+                    <Sparkles className="w-3.5 h-3.5 mr-1" /> Lihat Paket Langganan
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          ) : (
+            <>
+              {/* Top Banner & Quick Navigation */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
+                    <Sparkles className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
                   <h2 className="text-sm font-bold text-foreground">AI Stock Depletion Forecasting</h2>
                   <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
                     Gemini Intelligence
@@ -397,8 +458,10 @@ export default function AIPredictionPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+          </>
+        )}
       </div>
+    </div>
 
       {/* Floating AI Business Assistant Chatbot */}
       <AIChatWidget />

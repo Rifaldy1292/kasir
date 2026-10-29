@@ -24,7 +24,10 @@ import {
   HelpCircle,
   RefreshCw,
   ArrowRight,
+  Crown,
+  Lock,
 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 import { AIChatWidget } from "@/components/global/ai-chat-widget"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -44,6 +47,12 @@ import {
 const COLORS = ["#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"]
 
 export default function DashboardPage() {
+  const { user } = useAuth()
+  const isPaidPlan =
+    user?.role === "SUPERADMIN" ||
+    user?.plan_code === "PREMIUM" ||
+    user?.plan_code === "PLATINUM"
+
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ["dashboard-data"],
     queryFn: async () => {
@@ -225,20 +234,53 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
 
-                <Button
-                  onClick={() => fetchInsights()}
-                  disabled={isInsightsFetching}
-                  size="sm"
-                  className="h-8 text-xs gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isInsightsFetching ? "animate-spin" : ""}`} />
-                  <span>{aiInsights.length > 0 ? "Perbarui Analisis" : "Analisis Sekarang"}</span>
-                </Button>
+                {!isPaidPlan ? (
+                  <Link href="/#harga">
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 shadow-xs"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Paket Premium</span>
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={() => fetchInsights()}
+                    disabled={isInsightsFetching}
+                    size="sm"
+                    className="h-8 text-xs gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isInsightsFetching ? "animate-spin" : ""}`} />
+                    <span>{aiInsights.length > 0 ? "Perbarui Analisis" : "Analisis Sekarang"}</span>
+                  </Button>
+                )}
               </div>
             </CardHeader>
 
             <CardContent className="p-5">
-              {isInsightsFetching ? (
+              {!isPaidPlan ? (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-background/50 border border-primary/15 text-center sm:text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Crown className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground">
+                        Wawasan Bisnis AI Gemini 2.0 (Eksklusif Premium &amp; Platinum)
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Toko Anda saat ini menggunakan paket <strong>{user?.plan_code || "STARTER"}</strong>. Dapatkan evaluasi otomatis margin laba, tren penjualan, dan saran strategis dengan beralih ke paket Premium.
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/#harga" className="shrink-0">
+                    <Button size="sm" className="h-8 text-xs font-semibold bg-primary text-primary-foreground shadow-xs">
+                      Upgrade Paket
+                    </Button>
+                  </Link>
+                </div>
+              ) : isInsightsFetching ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {Array.from({ length: 3 }).map((_, idx) => (
                     <div key={idx} className="p-4 rounded-xl border border-border bg-card/60 space-y-2.5">

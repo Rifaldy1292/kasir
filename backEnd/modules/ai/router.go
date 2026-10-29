@@ -12,7 +12,7 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	service := NewAIService(repo)
 	controller := NewAIController(service)
 
-	aiGroup := r.Group("/ai", middleware.AuthMiddleware())
+	aiGroup := r.Group("/ai", middleware.AuthMiddleware(), middleware.RequirePlan(db, "PREMIUM", "PLATINUM"))
 	{
 		aiGroup.POST("/chat", controller.Chat)
 		aiGroup.GET("/insights", controller.GetInsights)

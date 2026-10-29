@@ -14,7 +14,10 @@ import {
   AlertTriangle,
   Lightbulb,
   GripVertical,
+  Crown,
+  Lock,
 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +37,12 @@ const QUICK_PROMPTS = [
 ]
 
 export function AIChatWidget() {
+  const { user } = useAuth()
+  const isPaidPlan =
+    user?.role === "SUPERADMIN" ||
+    user?.plan_code === "PREMIUM" ||
+    user?.plan_code === "PLATINUM"
+
   const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -419,8 +428,9 @@ export function AIChatWidget() {
           </span>
         </div>
         <span className="font-semibold text-xs tracking-wide">AI Assistant</span>
-        <Badge variant="secondary" className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 font-bold">
-          Gemini
+        <Badge variant="secondary" className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 font-bold gap-1">
+          {!isPaidPlan && <Lock className="w-2.5 h-2.5" />}
+          {isPaidPlan ? "Gemini" : "PRO"}
         </Badge>
       </div>
     )
@@ -508,8 +518,47 @@ export function AIChatWidget() {
 
       {/* Widget Body */}
       {!isMinimized && (
-        <>
-          {/* Quick Prompts Bar */}
+        !isPaidPlan ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4 bg-background/50">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-xs">
+              <Crown className="w-7 h-7 text-primary" />
+            </div>
+            <div>
+              <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5 uppercase font-bold tracking-wider mb-2">
+                Paket Premium &amp; Platinum
+              </Badge>
+              <h3 className="text-base font-bold text-foreground">
+                Asisten Cerdas Gemini 2.0
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Toko Anda saat ini menggunakan paket <strong>{user?.plan_code || "STARTER"}</strong>. Fitur tanya jawab AI interaktif, analisis penjualan, dan konsultasi strategi hanya aktif untuk paket <strong>Premium</strong> dan <strong>Platinum</strong>.
+              </p>
+            </div>
+
+            <div className="w-full p-3 rounded-xl border border-border bg-card/60 text-left text-xs space-y-2">
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span>Analisis Laba &amp; Omzet Real-Time</span>
+              </div>
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span>Rekomendasi Produk Paling Laris</span>
+              </div>
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span>Pencarian Produk Cerdas Bahasa Alami</span>
+              </div>
+            </div>
+
+            <a href="/#harga" className="w-full pt-1">
+              <Button className="w-full text-xs h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md shadow-primary/20">
+                <Sparkles className="w-3.5 h-3.5 mr-1" /> Tingkatkan ke Premium
+              </Button>
+            </a>
+          </div>
+        ) : (
+          <>
+            {/* Quick Prompts Bar */}
           <div className="px-3 py-2 bg-muted/40 border-b border-border flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
             {QUICK_PROMPTS.map((qp, idx) => {
               const Icon = qp.icon
@@ -610,6 +659,7 @@ export function AIChatWidget() {
             </p>
           </div>
         </>
+        )
       )}
     </div>
   )

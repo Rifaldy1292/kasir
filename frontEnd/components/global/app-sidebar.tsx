@@ -50,13 +50,22 @@ export function AppSidebar() {
   })
 
   const isShiftOpen = !!sessionData
+  const isPaidPlan =
+    user?.role === "SUPERADMIN" ||
+    user?.plan_code === "PREMIUM" ||
+    user?.plan_code === "PLATINUM"
 
   const navItems = [
     { label: "Terminal Kasir", href: "/pos", icon: Store },
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Produk & Menu", href: "/products", icon: Package },
     { label: "Stok & Inventori", href: "/inventory", icon: Boxes },
-    { label: "Prediksi Stok AI", href: "/inventory/ai-prediction", icon: Sparkles, badge: "AI" },
+    {
+      label: "Prediksi Stok AI",
+      href: "/inventory/ai-prediction",
+      icon: Sparkles,
+      badge: isPaidPlan ? "AI" : "PRO",
+    },
     { label: "Riwayat Transaksi", href: "/transactions", icon: ReceiptText },
     { label: "Pembelian / PO", href: "/purchases", icon: ShoppingCart },
     { label: "Pelanggan", href: "/customers", icon: Users },
